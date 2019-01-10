@@ -29,6 +29,7 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private Realm mRealm;
     public static final String TAG = "VIVZ";
     private AddListener mAddListener;
+    private MarkListener mMarkListener;
 
     public AdapterDrops(Context context, Realm realm, RealmResults<Drop> results) {
         mInflater = LayoutInflater.from(context);
@@ -36,11 +37,12 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         update(results);
     }
 
-    public AdapterDrops(Context context, Realm realm, RealmResults<Drop> results, AddListener listener) {
+    public AdapterDrops(Context context, Realm realm, RealmResults<Drop> results, AddListener listener, MarkListener markListener) {
         mInflater = LayoutInflater.from(context);
         update(results);
         mRealm = realm;
         mAddListener = listener;
+        mMarkListener = markListener;
     }
 
     public void setAddListener(AddListener listener) {
@@ -77,7 +79,7 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             return new FooterHolder(view);
         } else {
             View view = mInflater.inflate(R.layout.row_drop, parent, false);
-            return new DropHolder(view);
+            return new DropHolder(view, mMarkListener);
         }
     }
 
@@ -110,12 +112,22 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     }
 
-    public static class DropHolder extends RecyclerView.ViewHolder {
+    public static class DropHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView mTextWhat;
-        public DropHolder(@NonNull View itemView) {
+        TextView mTextWhen;
+        MarkListener mMarkLisstener;
+        public DropHolder(@NonNull View itemView, MarkListener listener) {
             super(itemView);
+            itemView.setOnClickListener(this);
             mTextWhat = itemView.findViewById(R.id.tv_what);
+            mTextWhen = itemView.findViewById(R.id.tv_when);
+            mMarkLisstener = listener;
+        }
+
+        @Override
+        public void onClick(View v) {
+            mMarkLisstener.onMark(getAdapterPosition());
         }
     }
 

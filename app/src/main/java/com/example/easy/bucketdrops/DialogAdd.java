@@ -12,6 +12,11 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.example.easy.bucketdrops.beans.Drop;
+
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+
 public class DialogAdd extends DialogFragment {
 
     private ImageButton mBtnClose;
@@ -22,9 +27,32 @@ public class DialogAdd extends DialogFragment {
     private View.OnClickListener mBtnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            int id = v.getId();
+            switch (id) {
+                case R.id.btn_add_it:
+                    addAction();
+                    break;
+            }
             dismiss();
         }
     };
+
+    //TODO process date
+    private void addAction() {
+        String what = mInputWhat.getText().toString();
+        long now = System.currentTimeMillis();
+        // initialize Realm
+        Realm.init(getActivity());
+
+
+
+        Realm realm = Realm.getDefaultInstance();
+        Drop drop = new Drop(what, now, 0, false);
+        realm.beginTransaction();
+        realm.copyToRealm(drop);
+        realm.commitTransaction();
+        realm.close();
+    }
 
     public DialogAdd() {
     }
@@ -41,8 +69,9 @@ public class DialogAdd extends DialogFragment {
         mInputWhat = view.findViewById(R.id.ed_drop);
         mInputWhen = view.findViewById(R.id.bpv_date);
         mBtnClose = view.findViewById(R.id.btn_close);
-        mBtnAdd = view.findViewById(R.id.btn_add);
+        mBtnAdd = view.findViewById(R.id.btn_add_it);
 
         mBtnClose.setOnClickListener(mBtnClickListener);
+        mBtnAdd.setOnClickListener(mBtnClickListener);
     }
 }
