@@ -1,9 +1,12 @@
 package com.example.easy.bucketdrops.adapters;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +15,9 @@ import android.widget.TextView;
 
 import com.example.easy.bucketdrops.R;
 import com.example.easy.bucketdrops.beans.Drop;
+import com.example.easy.bucketdrops.extras.Util;
 
 import java.util.ArrayList;
-import java.util.FormatFlagsConversionMismatchException;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -88,7 +91,9 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if (holder instanceof DropHolder) {
             DropHolder dropHolder = (DropHolder) holder;
             Drop drop = mResults.get(i);
-            dropHolder.mTextWhat.setText(drop.getWhat());
+            dropHolder.setWhat(drop.getWhat());
+            dropHolder.setWhen(drop.getWhen());
+            dropHolder.setBackground(drop.isCompleted());
         }
     }
 
@@ -112,22 +117,56 @@ public class AdapterDrops extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     }
 
+    public void markComplete(int position) {
+        if (position < mResults.size()) {
+            mRealm.beginTransaction();
+            mResults.get(position).setCompleted(true);
+            mRealm.commitTransaction();
+            notifyItemChanged(position);
+        }
+    }
+
     public static class DropHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView mTextWhat;
         TextView mTextWhen;
         MarkListener mMarkLisstener;
+        Context mContext;
+        View mItemView;
+
         public DropHolder(@NonNull View itemView, MarkListener listener) {
             super(itemView);
+            mItemView = itemView;
             itemView.setOnClickListener(this);
+            mContext = itemView.getContext();
             mTextWhat = itemView.findViewById(R.id.tv_what);
             mTextWhen = itemView.findViewById(R.id.tv_when);
             mMarkLisstener = listener;
         }
 
+        public void setWhat(String what) {
+            mTextWhat.setText(what);
+        }
+
         @Override
         public void onClick(View v) {
             mMarkLisstener.onMark(getAdapterPosition());
+        }
+
+        public void setBackground(boolean completed) {
+            Drawable drawable;
+            if (completed) {
+                drawable = ContextCompat.getDrawable(mContext, R.color.bg_drop_complete);
+
+            } else {
+                drawable = ContextCompat.getDrawable(mContext, R.drawable.bg_row_drop);
+            }
+            Util.setBackground(mItemView, drawable);
+
+        }
+
+        public void setWhen(long when) {
+            mTextWhen.setText(DateUtils.getRelativeTimeSpanString(when, System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS, DateUtils.FORMAT_ABBREV_ALL));
         }
     }
 
