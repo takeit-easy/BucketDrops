@@ -6,9 +6,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.easy.bucketdrops.adapters.AdapterDrops;
@@ -67,7 +70,7 @@ public class ActivityMain extends AppCompatActivity{
     private CompleteListener mCompletelistener = new CompleteListener() {
         @Override
         public void onComplete(int position) {
-
+            mAdapter.markComplete(position);
         }
     };
 
@@ -81,6 +84,7 @@ public class ActivityMain extends AppCompatActivity{
         Bundle bundle = new Bundle();
         bundle.putInt("POSITION", position);
         dialog.setArguments(bundle);
+        dialog.setCompleteListener(mCompletelistener);
         dialog.show(getSupportFragmentManager(),"Mark");
     }
 
@@ -108,6 +112,23 @@ public class ActivityMain extends AppCompatActivity{
         ItemTouchHelper helper = new ItemTouchHelper(callback);
         helper.attachToRecyclerView(mRecycler);
         initBackgroundImage();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_add:
+                Toast.makeText(ActivityMain.this, "Add was clicked", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void initBackgroundImage() {
