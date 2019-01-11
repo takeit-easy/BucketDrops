@@ -27,6 +27,7 @@ import com.example.easy.bucketdrops.widgets.DialogMark;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
+import io.realm.Sort;
 
 public class ActivityMain extends AppCompatActivity{
 
@@ -125,8 +126,24 @@ public class ActivityMain extends AppCompatActivity{
         int id = item.getItemId();
         switch (id) {
             case R.id.action_add:
-                Toast.makeText(ActivityMain.this, "Add was clicked", Toast.LENGTH_SHORT).show();
-                break;
+                showDialogAdd();
+                return true;
+            case R.id.action_sort_ascending_date:
+                mResults = mRealm.where(Drop.class).sort("when").findAll();
+                mResults.addChangeListener(mChangeListener);
+                return true;
+            case R.id.acrion_sort_discending_date:
+                mResults = mRealm.where(Drop.class).sort("when", Sort.DESCENDING).findAll();
+                mResults.addChangeListener(mChangeListener);
+                return true;
+            case R.id.acrion_show_complete:
+                mResults = mRealm.where(Drop.class).equalTo("completed", true).findAllAsync();
+                mResults.addChangeListener(mChangeListener);
+                return true;
+            case R.id.action_show_incomplete:
+                mResults = mRealm.where(Drop.class).equalTo("completed", false).findAllAsync();
+                mResults.addChangeListener(mChangeListener);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
