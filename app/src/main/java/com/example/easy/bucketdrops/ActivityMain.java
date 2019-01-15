@@ -1,26 +1,22 @@
 package com.example.easy.bucketdrops;
 
-import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Filter;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
 import com.example.easy.bucketdrops.adapters.AdapterDrops;
 import com.example.easy.bucketdrops.adapters.AddListener;
 import com.example.easy.bucketdrops.adapters.CompleteListener;
 import com.example.easy.bucketdrops.adapters.Divider;
-import com.example.easy.bucketdrops.adapters.Filters;
+import com.example.easy.bucketdrops.adapters.Filter;
 import com.example.easy.bucketdrops.adapters.MarkListener;
 import com.example.easy.bucketdrops.adapters.SimpleTouchCallback;
 import com.example.easy.bucketdrops.beans.Drop;
@@ -97,7 +93,7 @@ public class ActivityMain extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRealm = Realm.getDefaultInstance();
-        int filterOption = load();
+        int filterOption = AppBucketDrops.load(this);
         loadResults(filterOption);
         mResults = mRealm.where(Drop.class).findAll();
         mToolbar = findViewById(R.id.toolbar);
@@ -105,7 +101,9 @@ public class ActivityMain extends AppCompatActivity{
         mBtnAdd.setOnClickListener(mBtnAddListener);
         mRecycler = findViewById(R.id.rv_drops);
         mRecycler.addItemDecoration(new Divider(this, LinearLayoutManager.VERTICAL));
+        mRecycler.setItemAnimator(new DefaultItemAnimator());
         mAdapter = new AdapterDrops(this, mRealm, mResults, mAddListener, mMarkListener);
+        mAdapter.setHasStableIds(true);
         mAdapter.setAddListener(mAddListener);
         mEmptyView = findViewById(R.id.empty_drops);
         mRecycler.hideIfEmpty(mToolbar);
@@ -130,32 +128,29 @@ public class ActivityMain extends AppCompatActivity{
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         boolean handled = true;
-        int filterOption = Filters.NONE;
+        int filterOption = Filter.NONE;
         switch (id) {
             case R.id.action_add:
                 showDialogAdd();
                 break;
             case R.id.action_sort_ascending_date:
-                save(Filters.LEAST_TIME_LEFT);
-                filterOption = Filters.LEAST_TIME_LEFT;
+                filterOption = Filter.LEAST_TIME_LEFT;
                 break;
             case R.id.acrion_sort_discending_date:
-                save(Filters.MOST_TIME_LEFT);
-                filterOption = Filters.MOST_TIME_LEFT;
+                filterOption = Filter.MOST_TIME_LEFT;
                 break;
             case R.id.acrion_show_complete:
-                save(Filters.COMPLETE);
-                filterOption = Filters.COMPLETE;
+                filterOption = Filter.COMPLETE;
                 break;
             case R.id.action_show_incomplete:
-                save(Filters.INCOMPLETE);
-                filterOption = Filters.INCOMPLETE;
+                filterOption = Filter.INCOMPLETE;
                 break;
             default:
                 handled = false;
                 break;
         }
         loadResults(filterOption);
+        AppBucketDrops.save(this, filterOption);
         return handled;
     }
 
@@ -169,35 +164,22 @@ public class ActivityMain extends AppCompatActivity{
 
     private void loadResults(int filterOption) {
         switch (filterOption) {
-            case Filters.NONE:
+            case Filter.NONE:
                 break;
-            case Filters.LEAST_TIME_LEFT:
+            case Filter.LEAST_TIME_LEFT:
                 mResults = mRealm.where(Drop.class).sort("when").findAll();
                 break;
-            case Filters.MOST_TIME_LEFT:
+            case Filter.MOST_TIME_LEFT:
                 mResults = mRealm.where(Drop.class).sort("when", Sort.DESCENDING).findAll();
                 break;
-            case Filters.COMPLETE:
+            case Filter.COMPLETE:
                 mResults = mRealm.where(Drop.class).equalTo("completed", true).findAllAsync();
                 break;
-            case Filters.INCOMPLETE:
+            case Filter.INCOMPLETE:
                 mResults = mRealm.where(Drop.class).equalTo("completed", false).findAllAsync();
                 break;
         }
         mResults.addChangeListener(mChangeListener);
-    }
-
-    private void save(int filterOption) {
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putInt("filter", filterOption);
-        editor.apply();
-    }
-
-    private int load() {
-        SharedPreferences pref = getPreferences(MODE_PRIVATE);
-        int filterOption = pref.getInt("filter", Filters.NONE);
-        return filterOption;
     }
 
     @Override
