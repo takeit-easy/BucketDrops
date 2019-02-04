@@ -18,6 +18,7 @@ import com.example.easy.bucketdrops.adapters.CompleteListener;
 import com.example.easy.bucketdrops.adapters.Divider;
 import com.example.easy.bucketdrops.adapters.Filter;
 import com.example.easy.bucketdrops.adapters.MarkListener;
+import com.example.easy.bucketdrops.adapters.ResetListener;
 import com.example.easy.bucketdrops.adapters.SimpleTouchCallback;
 import com.example.easy.bucketdrops.beans.Drop;
 import com.example.easy.bucketdrops.widgets.BucketRecyclerView;
@@ -74,6 +75,14 @@ public class ActivityMain extends AppCompatActivity{
         }
     };
 
+    private ResetListener mResetListener = new ResetListener() {
+        @Override
+        public void onReset() {
+            AppBucketDrops.save(ActivityMain.this, Filter.NONE);
+            loadResults(Filter.NONE);
+        }
+    };
+
     private void showDialogAdd() {
         DialogAdd dialog = new DialogAdd();
         dialog.show(getSupportFragmentManager(),"Add");
@@ -102,7 +111,7 @@ public class ActivityMain extends AppCompatActivity{
         mRecycler = findViewById(R.id.rv_drops);
         mRecycler.addItemDecoration(new Divider(this, LinearLayoutManager.VERTICAL));
         mRecycler.setItemAnimator(new DefaultItemAnimator());
-        mAdapter = new AdapterDrops(this, mRealm, mResults, mAddListener, mMarkListener);
+        mAdapter = new AdapterDrops(this, mRealm, mResults, mAddListener, mMarkListener, mResetListener);
         mAdapter.setHasStableIds(true);
         mAdapter.setAddListener(mAddListener);
         mEmptyView = findViewById(R.id.empty_drops);
